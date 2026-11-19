@@ -300,7 +300,7 @@ def analyze_with_gemini(api_key, prompt_template, item):
         f"Content: {item['content']}\n"
     )
 
-    url = f"{GEMINI_API_BASE}/models/{GEMINI_MODEL}:generateContent?key={api_key}"
+    url = f"{GEMINI_API_BASE}/models/{GEMINI_MODEL}:generateContent"
     payload = {
         "contents": [
             {
@@ -315,7 +315,7 @@ def analyze_with_gemini(api_key, prompt_template, item):
     }
 
     try:
-        resp = requests.post(url, json=payload, timeout=30)
+        resp = requests.post(url, json=payload, headers={"x-goog-api-key": api_key}, timeout=30)
         resp.raise_for_status()
         data = resp.json()
 

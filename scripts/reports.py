@@ -18,6 +18,7 @@ build.py가 이 플래그를 보고 "데이터 부족" 안내를 페이지에 �
 
 import json
 import os
+import re
 import sys
 import time
 from datetime import datetime, timezone, timedelta
@@ -243,7 +244,7 @@ def build_prompt(kind, cards, start_date, end_date):
 
 def call_gemini(api_key, prompt):
     """Gemini REST API 호출, JSON 응답 파싱"""
-    url = f"{GEMINI_API_BASE}/models/{GEMINI_MODEL}:generateContent?key={api_key}"
+    url = f"{GEMINI_API_BASE}/models/{GEMINI_MODEL}:generateContent"
     payload = {
         "contents": [{"role": "user", "parts": [{"text": prompt}]}],
         "generationConfig": {
@@ -251,7 +252,7 @@ def call_gemini(api_key, prompt):
             "temperature": 0.4,
         }
     }
-    resp = requests.post(url, json=payload, timeout=60)
+    resp = requests.post(url, json=payload, headers={"x-goog-api-key": api_key}, timeout=60)
     resp.raise_for_status()
     data = resp.json()
     text = data["candidates"][0]["content"]["parts"][0]["text"]
@@ -313,7 +314,7 @@ def main():
             print(f"✓ 합성 성공: {synthesis.get('summary_one_liner', synthesis.get('executive_summary', ['']))[:60]}...")
         except Exception as e:
             print(f"✗ Gemini 합성 실패: {e}", file=sys.stderr)
-            synthesis = {"_error": str(e)}
+            synthesis = {"_error": re.sub(r"AIza[0-9A-Za-z_-]{20,}", "***", str(e))}
 
         report = {
             "kind": kind,
